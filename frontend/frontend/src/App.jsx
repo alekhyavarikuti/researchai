@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import HistoryPage from './components/HistoryPage';
+import PlagiarismChecker from './components/PlagiarismChecker';
 import {
   BarChart2,
   BookOpen,
@@ -12,7 +14,9 @@ import {
   LogOut,
   Settings,
   Bell,
-  Search
+  Search,
+  History,
+  ShieldAlert
 } from 'lucide-react';
 import LibraryComponent from './components/Library';
 import Chat from './components/Chat';
@@ -32,6 +36,8 @@ function Sidebar({ isOpen, toggleSidebar }) {
     { path: '/chat', label: 'AI Assistant', icon: <MessageSquare size={18} /> },
     { path: '/news', label: 'Market Intelligence', icon: <Newspaper size={18} /> },
     { path: '/collab', label: 'Team Space', icon: <Users size={18} /> },
+    { path: '/plagiarism', label: 'Plagiarism Check', icon: <ShieldAlert size={18} /> },
+    { path: '/history', label: 'Chat History', icon: <History size={18} /> },
   ];
 
   return (
@@ -174,8 +180,10 @@ const AuthenticatedLayout = () => {
           <Routes>
             <Route path="/library" element={<LibraryComponent />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/history" element={<HistoryPage />} />
             <Route path="/news" element={<News />} />
             <Route path="/collab" element={<Collaboration />} />
+            <Route path="/plagiarism" element={<PlagiarismChecker />} />
             <Route path="/" element={<Chat />} /> {/* Default to Chat */}
           </Routes>
         </main>

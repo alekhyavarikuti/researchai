@@ -1,44 +1,75 @@
 import os
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 class SearchService:
     def __init__(self, paper_service=None):
         self.paper_service = paper_service
-        # No more heavy model loading or vector DB
 
-    def add_paper(self, filepath):
-        # We don't need to index anything for simple keyword search
-        # But we return True to keep the API consistent
-        return True
+    def get_all_paper_contents(self):
+        """Fetches content and filenames for all papers in the knowledge base."""
+        if not self.paper_service:
+            return [], []
+            
+        filenames = self.paper_service.list_papers()
+        contents = []
+        valid_filenames = []
+        
+        for name in filenames:
+            path = self.paper_service.get_paper_path(name)
+            content = self.paper_service.extract_text(path)
+            if content and len(content.strip()) > 50:
+                contents.append(content)
+                valid_filenames.append(name)
+        
+        return contents, valid_filenames
 
-    def search(self, query, k=5):
+    def find_similar_documents(self, query_text, k=5, threshold=0.1):
         """
-        Simple keyword search over all papers.
-        This is much simpler and error-free compared to vector search.
+        Uses TF-IDF Vectorization and Cosine Similarity to find matching documents.
+        This represents a 'correct algorithm' for document-level plagiarism detection.
         """
-        if not query or not self.paper_service:
+        contents, filenames = self.get_all_paper_contents()
+        
+        if not contents or not query_text:
             return []
 
-        results = []
-        papers = self.paper_service.list_papers()
+        # Initialize TF-IDF Vectorizer
+        # We use ngram_range=(1,2) to catch both words and short phrases
+        vectorizer = TfidfVectorizer(stop_words='english', ngram_range=(1, 2))
         
-        for filename in papers:
-            filepath = self.paper_service.get_paper_path(filename)
-            content = self.paper_service.extract_text(filepath)
+        try:
+            # Fit and transform the document corpus + the query
+            tfidf_matrix = vectorizer.fit_transform(contents + [query_text])
             
-            if content and query.lower() in content.lower():
-                # Find the snippet
-                idx = content.lower().find(query.lower())
-                start = max(0, idx - 100)
-                end = min(len(content), idx + 400)
-                snippet = content[start:end]
-                
-                results.append({
-                    "source": filename,
-                    "content": snippet.strip() + "...",
-                    "score": 1.0 # Dummy score
-                })
+            # The query vector is the last one in the matrix
+            query_vector = tfidf_matrix[-1]
+            document_vectors = tfidf_matrix[:-1]
+            
+            # Calculate cosine similarity between query and all documents
+            similarities = cosine_similarity(query_vector, document_vectors).flatten()
+            
+            # Sort by similarity score
+            results = []
+            for idx in np.argsort(similarities)[::-1]:
+                score = similarities[idx]
+                if score >= threshold:
+                    content_snippet = contents[idx]
+                    results.append({
+                        "source": filenames[idx],
+                        "score": round(float(score) * 100, 2),
+                        "content": content_snippet[:300] + "..."
+                    })
                 
                 if len(results) >= k:
                     break
-        
-        return results
+            
+            return results
+        except Exception as e:
+            print(f"Algorithm Error in Similarity Check: {e}")
+            return []
+
+    def search(self, query, k=5):
+        """Original search method updated to use higher accuracy algorithm."""
+        return self.find_similar_documents(query, k=k)

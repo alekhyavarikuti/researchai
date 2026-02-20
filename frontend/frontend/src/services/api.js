@@ -61,6 +61,14 @@ export const getRoom = (roomId) => api.get(`/rooms/${roomId}`);
 export const addMessage = (roomId, content, user) => api.post(`/rooms/${roomId}/messages`, { content, user });
 export const getMessages = (roomId) => api.get(`/rooms/${roomId}/messages`);
 export const comparePapers = (filenames) => api.post('/compare', { filenames });
+export const checkPlagiarism = (data) => {
+  if (data instanceof FormData) {
+    return api.post('/check-plagiarism', data, { headers: { 'Content-Type': 'multipart/form-data' } });
+  }
+  return api.post('/check-plagiarism', data);
+};
 export const getDashboardData = () => api.get('/dashboard');
+export const getConferences = (topic) => api.get(`/conferences?topic=${topic}`);
+export const visualizePaper = (data) => api.post('/visualize-paper', data);
 
 export default api;

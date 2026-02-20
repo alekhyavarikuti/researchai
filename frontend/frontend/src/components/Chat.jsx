@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { askQuestion, uploadPaper, getDashboardData } from '../services/api';
+import { askQuestion, uploadPaper, getDashboardData, visualizePaper } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Paperclip, Sparkles, Send, Mic, User, ArrowUp, Bot, FileText, Zap, Image as ImageIcon, X, Menu, History, MessageSquare, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,13 +17,37 @@ const ThinkingAnimation = () => (
                 width: 8px;
                 height: 8px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, #2dd4bf, #0ea5e9); /* Teal to Sky Blue */
+                background: linear-gradient(135deg, #2dd4bf, #0ea5e9); 
                 animation: pulse-teal 1.4s infinite ease-in-out both;
             }
         `}</style>
         <div className="dot-teal" style={{ animationDelay: '0s' }}></div>
         <div className="dot-teal" style={{ animationDelay: '0.2s' }}></div>
         <div className="dot-teal" style={{ animationDelay: '0.4s' }}></div>
+    </div>
+);
+
+const ImageGenerationAnimation = () => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '2rem', background: '#0f172a', borderRadius: '24px', border: '1px dashed #2dd4bf', maxWidth: '400px', margin: '1rem auto' }}>
+        <style>{`
+            @keyframes scan {
+                0% { top: 0; }
+                100% { top: 100%; }
+            }
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+        `}</style>
+        <div style={{ width: '150px', height: '150px', borderRadius: '16px', background: 'linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%)', backgroundSize: '200% 100%', animation: 'shimmer 2s infinite', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', left: 0, width: '100%', height: '2px', background: '#2dd4bf', boxShadow: '0 0 15px #2dd4bf', animation: 'scan 3s linear infinite' }}></div>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Zap size={32} color="#2dd4bf" className="pulse" />
+            </div>
+        </div>
+        <p style={{ color: '#2dd4bf', fontWeight: 600, fontSize: '0.85rem', textAlign: 'center' }}>
+            Synthesizing visual concepts...
+        </p>
     </div>
 );
 
@@ -256,7 +280,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onHistorySelect }) => {
                     ))
                 )}
             </div>
-            
+
             <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid #1e293b', fontSize: '0.8rem', color: '#475569', textAlign: 'center' }}>
                 Zencoders AI © 2026
             </div>
@@ -264,7 +288,7 @@ const Sidebar = ({ isOpen, toggleSidebar, onHistorySelect }) => {
     );
 };
 
-export default function Chat() {
+export default function Chat({ toggleMainSidebar }) {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -277,6 +301,14 @@ export default function Chat() {
     const imageInputRef = useRef(null);
     const messagesEndRef = useRef(null);
 
+    useEffect(() => {
+        const handleRetry = (e) => {
+            handleVisualize(e.detail.content, e.detail.filename);
+        };
+        window.addEventListener('retry-vis', handleRetry);
+        return () => window.removeEventListener('retry-vis', handleRetry);
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -285,12 +317,41 @@ export default function Chat() {
         scrollToBottom();
     }, [messages, loading]);
 
+    const handleVisualize = async (content, filename) => {
+        const visualMsg = { role: 'assistant', type: 'visual_abstract_loading', content: 'Generating...' };
+        setMessages(prev => [...prev, visualMsg]);
+
+        try {
+            const res = await visualizePaper({ content, filename });
+            setMessages(prev => {
+                const filtered = prev.filter(m => m.type !== 'visual_abstract_loading');
+                return [...filtered, {
+                    role: 'assistant',
+                    type: 'visual_abstract',
+                    content: res.data.prompt,
+                    image: res.data.image_url,
+                    original_content: content,
+                    original_filename: filename
+                }];
+            });
+        } catch (error) {
+            setMessages(prev => prev.filter(m => m.type !== 'visual_abstract_loading'));
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                type: 'visual_abstract_error',
+                content: 'Visualization timed out or failed.',
+                original_content: content,
+                original_filename: filename
+            }]);
+        }
+    };
+
     const handleStreamingResponse = async (prompt, imageData = null) => {
         setLoading(true);
         const token = localStorage.getItem('token');
         const endpoint = imageData ? '/api/analyze-image' : '/api/qa-stream';
-        const body = imageData 
-            ? JSON.stringify({ prompt, image: imageData }) 
+        const body = imageData
+            ? JSON.stringify({ prompt, image: imageData })
             : JSON.stringify({ question: prompt });
 
         try {
@@ -315,10 +376,10 @@ export default function Chat() {
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
-                
+
                 const chunk = decoder.decode(value, { stream: true });
                 aiMessageContent += chunk;
-                
+
                 // Update the last message
                 setMessages(prev => {
                     const newMsgs = [...prev];
@@ -345,10 +406,10 @@ export default function Chat() {
         if (selectedImage) {
             userMessage.image = imagePreview; // Store preview for UI
         }
-        
+
         setMessages(prev => [...prev, userMessage]);
         setInput('');
-        
+
         await handleStreamingResponse(text || "Describe this image", selectedImage);
     };
 
@@ -358,8 +419,14 @@ export default function Chat() {
 
         setMessages(prev => [...prev, { role: 'system', content: `Uploading ${file.name}...` }]);
         try {
-            await uploadPaper(file);
-            setMessages(prev => [...prev, { role: 'system', content: `Success: ${file.name} uploaded.` }]);
+            const res = await uploadPaper(file);
+            setMessages(prev => [...prev, {
+                role: 'system',
+                type: 'upload_success',
+                filename: file.name,
+                content: res.data.content, // Assume backend returns content or filename
+                content_preview: res.data.content // passed to visualizer
+            }]);
         } catch (error) {
             setMessages(prev => [...prev, { role: 'system', content: `Error: Failed to upload ${file.name}.` }]);
         } finally {
@@ -392,17 +459,6 @@ export default function Chat() {
             position: 'relative',
             overflow: 'hidden'
         }}>
-            {/* Sidebar Overlay */}
-            {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 40 }} />}
-            
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={() => setSidebarOpen(!sidebarOpen)} onHistorySelect={(txt) => { setInput(txt); setSidebarOpen(false); }} />
-
-            {/* Top Bar */}
-            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', padding: '1rem', display: 'flex', justifyContent: 'space-between', zIndex: 30, pointerEvents: 'none' }}>
-                <button onClick={() => setSidebarOpen(true)} style={{ pointerEvents: 'auto', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
-                    <Menu size={24} />
-                </button>
-            </div>
 
             {/* Background Gradients */}
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', overflow: 'hidden', zIndex: 0 }}>
@@ -428,9 +484,79 @@ export default function Chat() {
                                             key={idx}
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            style={{ textAlign: 'center', fontSize: '0.8rem', color: '#64748b', margin: '1rem 0', background: '#1e293b', padding: '0.5rem 1rem', borderRadius: '12px', alignSelf: 'center', width: 'fit-content' }}
+                                            style={{ textAlign: 'center', margin: '1rem 0', alignSelf: 'center', width: 'fit-content' }}
                                         >
-                                            {msg.content}
+                                            {msg.type === 'upload_success' ? (
+                                                <div style={{ background: '#1e293b', padding: '1rem', borderRadius: '16px', border: '1px solid #2dd4bf', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                                    <div style={{ color: '#2dd4bf', fontSize: '0.9rem', fontWeight: 600 }}>Successfully uploaded {msg.filename}</div>
+                                                    <button
+                                                        onClick={() => handleVisualize(msg.content, msg.filename)}
+                                                        style={{ background: 'linear-gradient(135deg, #2dd4bf, #0ea5e9)', border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}
+                                                    >
+                                                        <Sparkles size={16} /> Visualize Paper with AI
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div style={{ fontSize: '0.8rem', color: '#64748b', background: '#1e293b', padding: '0.5rem 1rem', borderRadius: '12px' }}>{msg.content}</div>
+                                            )}
+                                        </motion.div>
+                                    );
+                                }
+
+                                if (msg.type === 'visual_abstract_loading') {
+                                    return <ImageGenerationAnimation key={idx} />;
+                                }
+
+                                if (msg.type === 'visual_abstract_error') {
+                                    return (
+                                        <motion.div 
+                                            key={idx}
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            style={{ textAlign: 'center', margin: '1rem 0', alignSelf: 'center', width: 'fit-content' }}
+                                        >
+                                            <div style={{ background: '#1e293b', padding: '1.5rem', borderRadius: '16px', border: '1px solid #ef4444', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+                                                <div style={{ color: '#ef4444', fontSize: '0.9rem', fontWeight: 600 }}>{msg.content}</div>
+                                                <button 
+                                                    onClick={() => handleVisualize(msg.original_content, msg.original_filename)}
+                                                    style={{ background: '#334155', border: 'none', borderRadius: '8px', padding: '8px 16px', color: '#fff', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                >
+                                                    <Zap size={16} /> Retry Synthesis
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                }
+
+                                if (msg.type === 'visual_abstract') {
+                                    return (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1.5rem', background: '#0f172a', borderRadius: '24px', border: '1px solid #1e293b', overflow: 'hidden', width: '100%', maxWidth: '100%' }}
+                                        >
+                                            <div style={{ color: '#2dd4bf', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1rem', fontWeight: 700 }}>
+                                                <Sparkles size={20} /> ResearchAI Visual Abstract
+                                            </div>
+                                            <div style={{ position: 'relative', width: '100%', aspectRatio: '1/1', background: '#1e293b', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                                                <img
+                                                    src={msg.image}
+                                                    alt="Visual Abstract"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.parentNode.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#64748b;font-size:0.9rem;text-align:center;padding:1rem;gap:1rem;">
+                                                            <div>Image synth timed out. The free engine is busy.</div>
+                                                            <button 
+                                                                onclick="this.innerText='Retrying...'; window.dispatchEvent(new CustomEvent('retry-vis', {detail: {content: ${JSON.stringify(msg.original_content)}, filename: ${JSON.stringify(msg.original_filename)}}}));" 
+                                                                style="background:#334155;border:none;border-radius:8px;padding:8px 16px;color:#fff;font-weight:600;cursor:pointer;"
+                                                            >Retry</button>
+                                                        </div>`;
+                                                    }}
+                                                />
+                                            </div>
+                                            <p style={{ fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic', lineHeight: 1.6 }}>"{msg.content}"</p>
                                         </motion.div>
                                     );
                                 }
@@ -495,7 +621,7 @@ export default function Chat() {
                                                                Since we update state chunk by chunk, standard render is fine. Typewriter is for simulation. 
                                                                Let's just render the text directly for streaming feeling.
                                                             */
-                                                            <div style={{ whiteSpace: 'pre-wrap' }}>{cleanContent}<span style={{inlineBlock: true, width: '6px', height: '14px', background: '#2dd4bf', animation: 'blink 1s infinite'}}>|</span></div>
+                                                            <div style={{ whiteSpace: 'pre-wrap' }}>{cleanContent}<span style={{ inlineBlock: true, width: '6px', height: '14px', background: '#2dd4bf', animation: 'blink 1s infinite' }}>|</span></div>
                                                         ) : (
                                                             <div style={{ whiteSpace: 'pre-wrap' }}>{cleanContent}</div>
                                                         );
@@ -554,15 +680,12 @@ export default function Chat() {
                     style={{
                         width: '100%',
                         maxWidth: '850px',
-                        background: '#1e293b',
-                        borderRadius: '32px',
-                        padding: '0.75rem 1rem',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '0.75rem',
-                        border: '1px solid #334155',
+                        justifyContent: 'center',
                         pointerEvents: 'auto',
-                        flexDirection: 'column'
+                        flexDirection: 'column',
+                        gap: '0.5rem'
                     }}
                 >
                     {/* Image Preview Area */}
@@ -570,11 +693,22 @@ export default function Chat() {
                         <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', paddingBottom: '8px', borderBottom: '1px solid #334155' }}>
                             <img src={imagePreview} alt="Preview" style={{ height: '50px', borderRadius: '8px' }} />
                             <span style={{ fontSize: '0.8rem', color: '#94a3b8', flex: 1 }}>Image attached</span>
-                            <button onClick={() => { setImagePreview(null); setSelectedImage(null); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={16}/></button>
+                            <button onClick={() => { setImagePreview(null); setSelectedImage(null); }} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer' }}><X size={16} /></button>
                         </div>
                     )}
 
-                    <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div
+                        style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            background: '#1e293b',
+                            padding: '0.5rem 0.75rem',
+                            borderRadius: '999px',
+                            border: '1px solid #334155'
+                        }}
+                    >
                         <input
                             type="file"
                             ref={fileInputRef}
@@ -582,6 +716,7 @@ export default function Chat() {
                             style={{ display: 'none' }}
                             accept=".pdf,.txt"
                         />
+
                         <input
                             type="file"
                             ref={imageInputRef}
@@ -591,11 +726,20 @@ export default function Chat() {
                         />
 
                         <motion.button
-                            whileHover={{ scale: 1.1, background: '#334155' }}
+                            whileHover={{ scale: 1.1 }}
                             onClick={() => fileInputRef.current.click()}
                             style={{
-                                width: '42px', height: '42px', borderRadius: '50%', border: 'none', background: 'transparent',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8'
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                border: 'none',
+                                background: 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: '#94a3b8',
+                                flexShrink: 0
                             }}
                             title="Upload Document"
                         >
@@ -603,11 +747,20 @@ export default function Chat() {
                         </motion.button>
 
                         <motion.button
-                            whileHover={{ scale: 1.1, background: '#334155' }}
+                            whileHover={{ scale: 1.1 }}
                             onClick={() => imageInputRef.current.click()}
                             style={{
-                                width: '42px', height: '42px', borderRadius: '50%', border: 'none', background: 'transparent',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94a3b8'
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                border: 'none',
+                                background: 'transparent',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: '#94a3b8',
+                                flexShrink: 0
                             }}
                             title="Upload Image"
                         >
@@ -619,7 +772,7 @@ export default function Chat() {
                             placeholder={selectedImage ? "Asking about this image..." : "Ask Zencoders AI..."}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                             disabled={loading}
                             style={{
                                 flex: 1,
@@ -628,34 +781,53 @@ export default function Chat() {
                                 outline: 'none',
                                 fontSize: '1rem',
                                 color: '#f1f5f9',
-                                padding: '0 0.5rem',
-                                fontFamily: 'inherit'
+                                padding: '0 0.25rem',
+                                minWidth: 0
                             }}
                         />
 
                         {input.trim() || selectedImage ? (
                             <motion.button
                                 whileHover={{ scale: 1.1 }}
-                                onClick={() => handleSend()}
+                                onClick={handleSend}
                                 disabled={loading}
                                 style={{
-                                    width: '42px', height: '42px', borderRadius: '50%', border: 'none', background: '#f1f5f9',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#0f172a'
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: '#f1f5f9',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    color: '#0f172a',
+                                    flexShrink: 0
                                 }}
                             >
-                                <ArrowUp size={22} strokeWidth={2.5} />
+                                <ArrowUp size={20} strokeWidth={2.5} />
                             </motion.button>
                         ) : (
                             <motion.button
                                 style={{
-                                    width: '42px', height: '42px', borderRadius: '50%', border: 'none', background: 'transparent',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'not-allowed', color: '#64748b'
+                                    width: '40px',
+                                    height: '40px',
+                                    borderRadius: '50%',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'not-allowed',
+                                    color: '#64748b',
+                                    flexShrink: 0
                                 }}
                             >
-                                <Mic size={22} />
+                                <Mic size={20} />
                             </motion.button>
                         )}
                     </div>
+
                 </motion.div>
             </div>
 

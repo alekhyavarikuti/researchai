@@ -7,7 +7,7 @@ from datetime import datetime
 
 main_bp = Blueprint('main', __name__)
 
-# ... existing upload route ...
+
 
 @main_bp.route('/upload', methods=['POST'])
 @jwt_required()
@@ -20,8 +20,8 @@ def upload_paper():
     
     filepath = paper_service.save_file(file)
     if filepath:
-        # Optimistically add to vector index immediately
-        search_service.add_paper(filepath)
+        # Extract content for immediate use (like visualization)
+        content = paper_service.extract_text(filepath)
         
         # Log history
         user_id = get_jwt_identity()
@@ -29,7 +29,11 @@ def upload_paper():
         db.session.add(new_history)
         db.session.commit()
         
-        return jsonify({'message': 'File uploaded and indexed successfully', 'filename': file.filename}), 201
+        return jsonify({
+            'message': 'File uploaded successfully', 
+            'filename': file.filename,
+            'content': content
+        }), 201
     else:
         return jsonify({'error': 'Invalid file type'}), 400
 
@@ -170,9 +174,43 @@ def analyze_image():
 
 @main_bp.route('/news', methods=['GET'])
 def get_news():
-    topic = request.args.get('topic', 'Artificial Intelligence')
+    topic = request.args.get('topic', 'Academic Research')
     articles = news_service.get_latest_news(topic)
     return jsonify({'articles': articles}), 200
+
+@main_bp.route('/conferences', methods=['GET'])
+def get_conferences():
+    topic = request.args.get('topic', 'Computer Science')
+    conferences = news_service.get_conferences(topic)
+    return jsonify({'conferences': conferences}), 200
+
+@main_bp.route('/visualize-paper', methods=['POST'])
+@jwt_required()
+def visualize_paper():
+    data = request.get_json()
+    content = data.get('content')
+    filename = data.get('filename', 'Unknown Document')
+    
+    if not content:
+        return jsonify({'error': 'Paper content required'}), 400
+        
+    # Use LLMService (Groq + Pollinations) for free, robust visualization
+    result = llm_service.generate_visual_prompt(content)
+    if not result:
+        return jsonify({'error': 'Failed to generate visualization. Ensure your Groq key is valid.'}), 500
+
+    # Log history
+    try:
+        user_identity = get_jwt_identity()
+        user_id = int(str(user_identity)) if user_identity else None
+        if user_id:
+            new_history = History(user_id=user_id, action="Visual Abstract", item_name=filename)
+            db.session.add(new_history)
+            db.session.commit()
+    except Exception as e:
+        print(f"History Log Error: {e}")
+
+    return jsonify(result), 200
 
 @main_bp.route('/compare', methods=['POST'])
 @jwt_required()
@@ -199,6 +237,76 @@ def compare_papers():
     db.session.commit()
     
     return jsonify({'comparison': comparison}), 200
+
+@main_bp.route('/check-plagiarism', methods=['POST'])
+@jwt_required()
+def check_plagiarism():
+    # Check for text in form data or json
+    content = None
+    filename = "Pasted Text"
+    
+    # Handle file upload
+    if 'file' in request.files:
+        file = request.files['file']
+        if file.filename != '':
+            filepath = paper_service.save_file(file)
+            if filepath:
+                content = paper_service.extract_text(filepath)
+                filename = file.filename
+            else:
+                return jsonify({'error': 'Invalid file type'}), 400
+    
+    # If no file content, check for raw text
+    if not content:
+        data = request.get_json(silent=True) or request.form
+        content = data.get('text')
+        
+    if not content:
+        return jsonify({'error': 'Text or file content is required'}), 400
+        
+    # Step 1: Internal Database Check (TF-IDF Similarity Algorithm)
+    internal_matches = []
+    internal_context = ""
+    try:
+        # Check for similarity in our own repository
+        # Use first 1000 chars for a robust search
+        internal_matches = search_service.search(content[:1000], k=3)
+        # Filter out current file
+        internal_matches = [m for m in internal_matches if m['source'] != filename]
+        
+        if internal_matches:
+            internal_context = "Matches found in our internal database:\n"
+            for m in internal_matches:
+                internal_context += f"- Source: {m['source']} (Similarity: {m['score']}%)\n  Snippet: {m['content']}\n"
+    except Exception as e:
+        print(f"Internal search error: {e}")
+
+    # Step 2: Advanced Forensic Analysis with LLM
+    result_str = llm_service.check_plagiarism(content, internal_context)
+    
+    # Step 3: Parse Result
+    import json
+    try:
+        clean_json = result_str.replace("```json", "").replace("```", "").strip()
+        result_data = json.loads(clean_json)
+    except Exception as e:
+        print(f"JSON Parse Error: {e}")
+        result_data = {"assessment": result_str, "originality_score": 0}
+
+    # Include internal matches in the final response for the UI to show
+    result_data['internal_matches'] = internal_matches
+    
+    # Log history
+    try:
+        user_id = get_jwt_identity()
+        if user_id:
+            new_history = History(user_id=int(user_id), action="Forensic Audit", item_name=filename)
+            db.session.add(new_history)
+            db.session.commit()
+    except Exception as e:
+        print(f"History Log Error: {e}")
+        
+    return jsonify({'result': result_data}), 200
 
 @main_bp.route('/rooms', methods=['POST'])
 @jwt_required()
