@@ -209,17 +209,17 @@ export default function Login() {
                 initial={{ x: 100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                style={{ width: '600px', background: 'linear-gradient(135deg, #e0f2fe 0%, #cbd5e1 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '4rem', boxShadow: '-10px 0 40px rgba(0,0,0,0.05)', position: 'relative', zIndex: 20 }}
+                style={{ width: '600px', background: '#0b0c10', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '4rem', boxShadow: '-10px 0 40px rgba(0,0,0,0.5)', position: 'relative', zIndex: 20, borderLeft: '1px solid #1e293b' }}
             >
                 <div style={{ width: '100%', maxWidth: '360px', margin: '0 auto' }}>
-                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>Welcome back</h2>
-                    <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Please enter your details to sign in.</p>
+                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Welcome back</h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '2.5rem' }}>Please enter your details to sign in.</p>
 
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}
                         >
                             {error}
                         </motion.div>
@@ -227,9 +227,9 @@ export default function Login() {
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <div style={{ position: 'relative' }}>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#334155', marginBottom: '0.5rem' }}>Email Address</label>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#e2e8f0', marginBottom: '0.5rem' }}>Email Address</label>
                             <div style={{ position: 'relative' }}>
-                                <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input
                                     type="email"
                                     placeholder="yourname@gmail.com"
@@ -239,26 +239,27 @@ export default function Login() {
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem 1rem 0.75rem 2.5rem',
-                                        border: '1px solid #e2e8f0',
+                                        background: '#0f172a',
+                                        border: '1px solid #1e293b',
                                         borderRadius: '8px',
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s',
                                         outline: 'none',
-                                        color: '#1e293b'
+                                        color: '#fff'
                                     }}
                                     onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    onBlur={(e) => e.target.style.borderColor = '#1e293b'}
                                 />
                             </div>
                         </div>
 
                         <div style={{ position: 'relative' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#334155' }}>Password</label>
+                                <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#e2e8f0' }}>Password</label>
                                 <a href="#" style={{ fontSize: '0.75rem', color: '#3b82f6', textDecoration: 'none', fontWeight: 500 }}>Forgot password?</a>
                             </div>
                             <div style={{ position: 'relative' }}>
-                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Enter your password"
@@ -268,20 +269,21 @@ export default function Login() {
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem 2.5rem 0.75rem 2.5rem',
-                                        border: '1px solid #e2e8f0',
+                                        background: '#0f172a',
+                                        border: '1px solid #1e293b',
                                         borderRadius: '8px',
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s',
                                         outline: 'none',
-                                        color: '#1e293b'
+                                        color: '#fff'
                                     }}
                                     onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    onBlur={(e) => e.target.style.borderColor = '#1e293b'}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
@@ -303,12 +305,12 @@ export default function Login() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.5rem',
-                                background: 'linear-gradient(to right, #2563eb, #3b82f6)',
+                                background: 'linear-gradient(to right, #2dd4bf, #0ea5e9)',
                                 border: 'none',
                                 color: '#fff',
                                 borderRadius: '8px',
                                 cursor: loading ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                                boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)'
                             }}
                         >
                             {loading ? 'Please wait...' : (
@@ -319,7 +321,7 @@ export default function Login() {
 
                     <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                         <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                            Don't have an account? <span onClick={() => navigate('/register')} style={{ color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}>Create free account</span>
+                            Don't have an account? <span onClick={() => navigate('/register')} style={{ color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Create free account</span>
                         </p>
                     </div>
                 </div>

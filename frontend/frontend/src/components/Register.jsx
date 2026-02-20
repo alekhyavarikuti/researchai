@@ -229,17 +229,17 @@ export default function Register() {
                 initial={{ x: 100, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                style={{ width: '600px', background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '4rem', boxShadow: '-10px 0 40px rgba(0,0,0,0.05)', position: 'relative', zIndex: 20 }}
+                style={{ width: '600px', background: '#0b0c10', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '4rem', boxShadow: '-10px 0 40px rgba(0,0,0,0.5)', position: 'relative', zIndex: 20, borderLeft: '1px solid #1e293b' }}
             >
                 <div style={{ width: '100%', maxWidth: '360px', margin: '0 auto' }}>
-                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>Create Account</h2>
-                    <p style={{ color: '#64748b', marginBottom: '2.5rem' }}>Join our research community today.</p>
+                    <h2 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#fff', marginBottom: '0.5rem' }}>Create Account</h2>
+                    <p style={{ color: '#94a3b8', marginBottom: '2.5rem' }}>Join our research community today.</p>
 
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            style={{ background: '#fef2f2', border: '1px solid #fee2e2', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}
+                            style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', color: '#ef4444', padding: '0.75rem', borderRadius: '8px', marginBottom: '1.5rem', fontSize: '0.875rem' }}
                         >
                             {error}
                         </motion.div>
@@ -247,9 +247,9 @@ export default function Register() {
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <div style={{ position: 'relative' }}>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#334155', marginBottom: '0.5rem' }}>Full Name</label>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#e2e8f0', marginBottom: '0.5rem' }}>Full Name</label>
                             <div style={{ position: 'relative' }}>
-                                <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <User size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input
                                     type="text"
                                     placeholder="Naveen"
@@ -259,23 +259,24 @@ export default function Register() {
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem 1rem 0.75rem 2.5rem',
-                                        border: '1px solid #e2e8f0',
+                                        background: '#0f172a',
+                                        border: '1px solid #1e293b',
                                         borderRadius: '8px',
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s',
                                         outline: 'none',
-                                        color: '#1e293b'
+                                        color: '#fff'
                                     }}
                                     onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    onBlur={(e) => e.target.style.borderColor = '#1e293b'}
                                 />
                             </div>
                         </div>
 
                         <div style={{ position: 'relative' }}>
-                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#334155', marginBottom: '0.5rem' }}>Email Address</label>
+                            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: '#e2e8f0', marginBottom: '0.5rem' }}>Email Address</label>
                             <div style={{ position: 'relative' }}>
-                                <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <Mail size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input
                                     type="email"
                                     placeholder="yourname@gmail.com"
@@ -285,23 +286,24 @@ export default function Register() {
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem 1rem 0.75rem 2.5rem',
-                                        border: '1px solid #e2e8f0',
+                                        background: '#0f172a',
+                                        border: '1px solid #1e293b',
                                         borderRadius: '8px',
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s',
                                         outline: 'none',
-                                        color: '#1e293b'
+                                        color: '#fff'
                                     }}
                                     onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    onBlur={(e) => e.target.style.borderColor = '#1e293b'}
                                 />
                             </div>
                         </div>
 
                         <div style={{ position: 'relative' }}>
-                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#334155' }}>Password</label>
+                            <label style={{ fontSize: '0.875rem', fontWeight: 500, color: '#e2e8f0' }}>Password</label>
                             <div style={{ position: 'relative' }}>
-                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                                <Lock size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     placeholder="Create a password"
@@ -311,20 +313,21 @@ export default function Register() {
                                     style={{
                                         width: '100%',
                                         padding: '0.75rem 2.5rem 0.75rem 2.5rem',
-                                        border: '1px solid #e2e8f0',
+                                        background: '#0f172a',
+                                        border: '1px solid #1e293b',
                                         borderRadius: '8px',
                                         fontSize: '0.875rem',
                                         transition: 'all 0.2s',
                                         outline: 'none',
-                                        color: '#1e293b'
+                                        color: '#fff'
                                     }}
                                     onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                                    onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+                                    onBlur={(e) => e.target.style.borderColor = '#1e293b'}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}
+                                    style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
                                 >
                                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                 </button>
@@ -337,19 +340,19 @@ export default function Register() {
                                     animate={{ opacity: 1, height: 'auto' }}
                                     style={{ marginTop: '0.75rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}
                                 >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.length ? '#10b981' : '#94a3b8' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.length ? '#2dd4bf' : '#64748b' }}>
                                         {validations.length ? <Check size={12} /> : <div style={{ width: 12, height: 12, borderRadius: '50%', border: '1px solid currentColor' }} />}
                                         8+ Characters
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.upper ? '#10b981' : '#94a3b8' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.upper ? '#2dd4bf' : '#64748b' }}>
                                         {validations.upper ? <Check size={12} /> : <div style={{ width: 12, height: 12, borderRadius: '50%', border: '1px solid currentColor' }} />}
                                         Uppercase
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.number ? '#10b981' : '#94a3b8' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.number ? '#2dd4bf' : '#64748b' }}>
                                         {validations.number ? <Check size={12} /> : <div style={{ width: 12, height: 12, borderRadius: '50%', border: '1px solid currentColor' }} />}
                                         Number
                                     </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.special ? '#10b981' : '#94a3b8' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', color: validations.special ? '#2dd4bf' : '#64748b' }}>
                                         {validations.special ? <Check size={12} /> : <div style={{ width: 12, height: 12, borderRadius: '50%', border: '1px solid currentColor' }} />}
                                         Special Char
                                     </div>
@@ -372,12 +375,12 @@ export default function Register() {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 gap: '0.5rem',
-                                background: 'linear-gradient(to right, #2563eb, #3b82f6)',
+                                background: 'linear-gradient(to right, #2dd4bf, #0ea5e9)',
                                 border: 'none',
                                 color: '#fff',
                                 borderRadius: '8px',
                                 cursor: loading ? 'not-allowed' : 'pointer',
-                                boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+                                boxShadow: '0 4px 15px rgba(45, 212, 191, 0.3)'
                             }}
                         >
                             {loading ? 'Please wait...' : (
@@ -388,7 +391,7 @@ export default function Register() {
 
                     <div style={{ marginTop: '2rem', textAlign: 'center' }}>
                         <p style={{ fontSize: '0.875rem', color: '#64748b' }}>
-                            Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#2563eb', fontWeight: 600, cursor: 'pointer' }}>Sign in</span>
+                            Already have an account? <span onClick={() => navigate('/login')} style={{ color: '#3b82f6', fontWeight: 600, cursor: 'pointer' }}>Sign in</span>
                         </p>
                     </div>
                 </div>

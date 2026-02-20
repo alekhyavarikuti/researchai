@@ -114,7 +114,7 @@ function UserFooter() {
         </div>
         <div style={{ flex: 1, overflow: 'hidden' }}>
           <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.username}</p>
-          <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>Pro Plan</p>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: '#94a3b8' }}>User</p>
         </div>
         <button onClick={logout} style={{ border: 'none', background: 'none', cursor: 'pointer', padding: '4px' }} title="Logout">
           <LogOut size={18} color="#64748b" />
