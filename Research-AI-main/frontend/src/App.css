@@ -1,0 +1,42 @@
+:root {
+  --bg-dark: #0f1014;
+  --bg-card: #1e1f24;
+  --text-primary: #e3e3e3;
+  --text-secondary: #a1a1aa;
+  --accent: #4c8bfa;
+  --gradient-start: #4c8bfa;
+  --gradient-end: #a855f7;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+#root {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
