@@ -8,6 +8,7 @@ This is the backend for the AI Research Agent, built with Python Flask.
 - **Summarization & UI**: Automated summaries and question answering using Groq (Llama 3).
 - **News Integration**: Real-time research news via Tavily API.
 - **Collaboration**: Basic research rooms for sharing insights.
+- **Voice announcer**
 
 ## Setup
 
